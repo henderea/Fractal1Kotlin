@@ -264,6 +264,16 @@ class MainClass : JFrame("Fractal Test") {
             mapping('X', "[FX][+FX][|+FX][-FX][|-FX]")
             mapping('F', "FF")
         })
+        models.add(model("Design 4") {
+            iterations(7)
+            defaultAngleDiff(90.0)
+            segments(2.75)
+            initialValue("[|X][FXFX][+FXFXFX-FXFX][-FXFXFX+FXFX]")
+            initialAngle(0.0)
+            initialPosition(0.25, 0.5)
+            mapping('X', "[FX][+FX][-FX]")
+            mapping('F', "FF")
+        })
         models.add(model("Peano") {
             defaultAngleDiff(90.0)
             segments(3.0)
