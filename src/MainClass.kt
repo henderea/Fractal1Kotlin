@@ -12,6 +12,12 @@ import kotlin.reflect.KProperty
  * Created by erichenderson on 4/3/16.
  */
 
+fun Int.loop(proc: (Int) -> Unit) {
+    for (i in 0..this - 1) {
+        proc(i)
+    }
+}
+
 class Model(val name: String) {
     protected val mappings: HashMap<Char, String> = HashMap()
     protected val finalMappings: HashMap<Char, String> = HashMap()
@@ -31,10 +37,10 @@ class Model(val name: String) {
         this.finalMappings[from] = to
     }
 
-    fun permute(input: String): String {
+    fun String.permuteByMapping(mappings: Map<Char, String>): String {
         val sb = StringBuilder()
-        for (c in input) {
-            if (this.mappings.contains(c)) sb.append(this.mappings[c])
+        for (c in this) {
+            if (mappings.contains(c)) sb.append(mappings[c])
             else sb.append(c)
         }
         return sb.toString()
@@ -42,14 +48,9 @@ class Model(val name: String) {
 
     fun genPattern(): String {
         var pattern = initialValue
-        for (i in 1..iterations) pattern = permute(pattern)
+        iterations.loop { pattern = pattern.permuteByMapping(this.mappings) }
         if (finalMappings.isNotEmpty()) {
-            val sb = StringBuilder()
-            for (c in pattern) {
-                if (this.finalMappings.contains(c)) sb.append(this.finalMappings[c])
-                else sb.append(c)
-            }
-            pattern = sb.toString()
+            pattern = pattern.permuteByMapping(this.finalMappings)
         }
         return pattern
     }
@@ -99,11 +100,12 @@ fun model(name: String, init: ModelBuilder.() -> Unit): Model {
 class RestrictedRangeDelegate(val min: Double, val max: Double, initialValue: Double = 0.0, val loop: Boolean = true) {
     private var value: Double = fitToRange(initialValue)
     private fun fitToRange(v: Double): Double {
-        if(loop) return ((v - min) % (max - min)) + min
-        if(v < min) return min
-        if(v > max) return max
+        if (loop) return ((v - min) % (max - min)) + min
+        if (v < min) return min
+        if (v > max) return max
         return v
     }
+
     operator fun getValue(thisRef: Any?, property: KProperty<*>): Double {
         return value
     }
@@ -170,11 +172,12 @@ class DrawPanel(model: Model) : JPanel() {
 class IntegerRestrictedVariableRangeDelegate(var min: Int, var max: Int, initialValue: Int = 0, val loop: Boolean = true) {
     private var value: Int = fitToRange(initialValue)
     private fun fitToRange(v: Int): Int {
-        if(loop) return ((v - min) % (max - min)) + min
-        if(v < min) return min
-        if(v > max) return max
+        if (loop) return ((v - min) % (max - min)) + min
+        if (v < min) return min
+        if (v > max) return max
         return v
     }
+
     operator fun getValue(thisRef: Any?, property: KProperty<*>): Int {
         return value
     }
@@ -194,6 +197,7 @@ class MainClass : JFrame("Fractal Test") {
     init {
         setupModels()
         modelIndexDelegate.max = models.size - 1
+        dp.curModel = models[modelIndex]
         this.size = Dimension(750, 750)
         this.defaultCloseOperation = EXIT_ON_CLOSE
         this.background = Color.WHITE
@@ -250,6 +254,15 @@ class MainClass : JFrame("Fractal Test") {
             defaultAngleDiff(90.0)
             segments(3.0)
             mapping('F', "F[|+F][|-F]F[-F][+F]F")
+        })
+        models.add(model("Design 3") {
+            iterations(5)
+            defaultAngleDiff(60.0)
+            segments(2.75)
+            initialValue("[FX][+FX][|+FX][-FX][|-FX][|FX]")
+            initialPosition(0.5, 0.5)
+            mapping('X', "[FX][+FX][|+FX][-FX][|-FX]")
+            mapping('F', "FF")
         })
         models.add(model("Peano") {
             defaultAngleDiff(90.0)
